@@ -1,0 +1,6 @@
+{
+  "zones": [
+    {"start": 10, "end": 15, "type": "speed_boost", "factor": 1.2},
+    {"start": 25, "end": 28, "type": "slow_zone", "factor": 0.7}
+  ]
+}

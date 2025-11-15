@@ -7,17 +7,31 @@ sim_tick_rate : 100
 telemetry_tick_rate : 60
 default_search_radius : 10.0
 default_controller : "heuristic"
-default_time_horizon_lower : 0.2
+default_time_horizon_lower : 0.1
 default_time_horizon_upper : 0.7
-track_rect_half : 200.0
+left_rect_half : 200.0
 track_inner_radius : 100.0
 track_outer_radius : 180.0
 agent_radius : 2.0
+rs1_length_x: 20.0
+ru_bound_length_x: 190.0
+rui_bound_length_y: 115.0
+ruo_bound_length_y: 195.0
+rl_bound_length_x: 60.0
+rli_bound1_length_y: 80.0
+rlo_bound1_length_y: 200.0
+rls2_length_x: 20.0
+rl_bound2_length_x: 130.0
+rli_bound2_length_y: 100.0
+rlo_bound2_length_y: 180.0
+rs1_length_y: 20.0
 
-# 🌦️ Environmental and dynamic parameters
+
 environment:
   track_condition: "dry"       # default starting condition
   dry_speed_multiplier: 1.0    # normal speed
   wet_speed_multiplier: 0.9    # slower on wet track
   transition_frame_dry: 100    # frame when it becomes dry
   transition_frame_wet: 200    # frame when it becomes wet
+
+

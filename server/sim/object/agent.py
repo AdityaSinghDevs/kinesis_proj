@@ -12,7 +12,6 @@ class Agent(Object):
 
     def __init__(self, position: Vector,
                  speed: float, direction: Vector, state: str, controller: Controller):
-        # TODO: randomly initialize agent ID in the simulation engine
         super().__init__(position=position)
         self.speed = speed
         self.direction = direction.normalized()
@@ -34,6 +33,7 @@ class Agent(Object):
                            self.direction.y * cos(angle))
         self.direction = Vector(new_direction_x, new_direction_y).normalized()
         self.position += self.direction * self.speed * dt
+        print(self.position.x, self.position.y)
         if self.speed > 0 and self.fuel > 0:
             self.state = 'moving'
         elif self.fuel == 0:
