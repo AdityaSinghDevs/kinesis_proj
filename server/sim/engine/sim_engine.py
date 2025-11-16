@@ -9,6 +9,7 @@ from sim.engine.world_view import WorldView
 
 from configs.settings import DEFAULT_SEARCH_RADIUS, NUM_AGENTS, MAX_SPEED
 from configs.settings import DEFAULT_CONTROLLER, SIM_TICK_RATE, NUM_OBSTACLES
+from sim.engine.leaderboard import LeaderboardManager
 
 import random
 import time
@@ -20,12 +21,13 @@ DT = 1.0 / SIM_TICK_RATE
 class SimulationEngine(WorldView):
     """Core simulation engine managing agents and obstacles."""
 
-    __slot__ = ('_objects', '_spatial_hash_grid', 'running',)
+    __slots__ = ('_objects', '_spatial_hash_grid', 'state', 'leaderboard_manager')
 
     def __init__(self):
         self._objects: dict[int, Object] = {}
         self._spatial_hash_grid = SpatialHashGrid(cell_size=5.0)
         self.state: str = 'initialized'
+        self.leaderboard_manager = LeaderboardManager()
 
     async def run(self):
         accumulator = 0.0
@@ -67,6 +69,7 @@ class SimulationEngine(WorldView):
                 obstacle.obj_id, obstacle.position.x, obstacle.position.y)
 
     def update(self) -> None:
+        print(self.get_agent_state());
         for obj in self._objects.values():
             if isinstance(obj, Agent):
                 if (obj.state in ('crashed', 'out_of_fuel')):
@@ -74,6 +77,7 @@ class SimulationEngine(WorldView):
                 obj.update_agent_state(DT)
                 self._spatial_hash_grid.move(
                     obj.obj_id, obj.position.x, obj.position.y)
+        self.leaderboard_manager.update(self._objects.values())
 
     def get_object_by_id(self, obj_id: int) -> Object:
         if obj_id in self._objects:
@@ -88,7 +92,6 @@ class SimulationEngine(WorldView):
         state = []
         for obj in self._objects.values():
             if isinstance(obj, Agent):
-                print(obj.position.x, obj.position.y);
                 state.append({
                     'id': obj.obj_id,
                     'position': (obj.position.x, obj.position.y),
@@ -99,3 +102,6 @@ class SimulationEngine(WorldView):
                     'lap': obj.lap
                 })
         return state
+
+    def get_live_leaderboard(self) -> list:
+        return self.leaderboard_manager.get_leaderboard()

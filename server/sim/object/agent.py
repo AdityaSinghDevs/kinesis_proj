@@ -37,7 +37,6 @@ class Agent(Object):
             # Ensure we don't move after crash/out_of_fuel
             self.speed = 0.0
             return
-        print(f"[UPDATE] Updating Agent {id(self)}")
         self.speed = self.speed * action.speed_factor
         # Update direction based on steering angle
         angle = action.steer_rad

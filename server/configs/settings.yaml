@@ -1,14 +1,14 @@
 num_agents : 20 
 num_obstacles : 5
 fuel_usage : 0.05
-max_speed : 150
+max_speed : 170
 lap_limit : 5
 sim_tick_rate : 100
 telemetry_tick_rate : 60
 default_search_radius : 10.0
 default_controller : "heuristic"
-default_time_horizon_upper : 0.6
-default_time_horizon_lower : 0.3
+default_time_horizon_upper : 0.5
+default_time_horizon_lower : 0.2
 left_rect_half : 200.0
 track_inner_radius : 100.0
 track_outer_radius : 180.0

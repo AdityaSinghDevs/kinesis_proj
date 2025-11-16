@@ -35,6 +35,8 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             if sim_engine.state == 'running':
                 snapshot = sim_engine.get_agent_state()
+                snapshot['leaderboard'] = sim_engine.get_leaderboard()
+                print(snapshot['leaderboard'])
                 await websocket.send_json(snapshot)
             await asyncio.sleep(DT)
     except WebSocketDisconnect:
@@ -45,9 +47,11 @@ async def websocket_endpoint(websocket: WebSocket):
 async def start_simulation():
     """Starts the simulation"""
     global sim_engine
-    if sim_engine.state != 'running':
-        sim_engine.state = 'running'
-        asyncio.create_task(sim_engine.run())
+  #  if sim_engine.state != 'running':
+  #      sim_engine.state = 'running'
+  #      asyncio.create_task(sim_engine.run())
+    viz = OvalVisualizer()
+    viz.run(sim_engine._objects.values(), sim_engine.update)
     return {"status": "started"}
 
 
