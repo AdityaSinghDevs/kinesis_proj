@@ -8,12 +8,15 @@ from controllers.heuristics.ttc import ttc_to_boundary, ttc_to_object, ttc_to_ag
 from controllers.controller import Controller
 from sim.action import Action
 from sim.action import DEFAULT_ACTIONS
+from utils.vector import Vector
 
 import numpy as np
 import random
 
 from configs.settings import DEFAULT_TIME_HORIZON_LOWER, DEFAULT_TIME_HORIZON_UPPER, MAX_SPEED
+import sys
 
+ESP = sys.float_info.epsilon
 
 class HeuristicController(Controller):
 
@@ -25,17 +28,18 @@ class HeuristicController(Controller):
         self.world_view = world_view
 
     def predict(self) -> Action:
+        print(f"[INIT] Controller created {id(self.agent)}")
         bound_ttc = ttc_to_boundary(self.agent.position,
                                     self.agent.direction * self.agent.speed)
 
-        if bound_ttc <= random.uniform(DEFAULT_TIME_HORIZON_LOWER, DEFAULT_TIME_HORIZON_UPPER):
-            smallest_ttc = bound_ttc
-            best_actions = self.find_best_evasive_action_for_boundary(
-                ['steer_left', 'steer_right', 'maintain', 'overtake_left', 'overtake_right'])
-            return DEFAULT_ACTIONS[best_actions]
+       # if bound_ttc <= random.uniform(DEFAULT_TIME_HORIZON_LOWER, DEFAULT_TIME_HORIZON_UPPER):
+       #     smallest_ttc = bound_ttc
+       #     best_actions = self.find_best_evasive_action_for_boundary(
+       #         ['steer_left', 'steer_right', 'maintain', 'overtake_left', 'overtake_right'])
+       #     return DEFAULT_ACTIONS[best_actions]
         neighors: list[int] = self.world_view.get_neighbors(
             self.agent.position)
-        smallest_ttc = bound_ttc
+        smallest_ttc = np.inf
         for neighbor_id in neighors:
             if neighbor_id == self.agent.obj_id:
                 continue
@@ -44,19 +48,33 @@ class HeuristicController(Controller):
             ttc = self._compute_ttc(neighbor_object)
             if ttc <= random.uniform(DEFAULT_TIME_HORIZON_LOWER, DEFAULT_TIME_HORIZON_UPPER) and ttc < smallest_ttc:
                 smallest_ttc = ttc
-        if smallest_ttc == np.inf:
+        if smallest_ttc <= ESP or smallest_ttc <= 0:
+            self.agent.state = 'crashed'
+            self.agent.speed = 0
+            self.agent.direction = Vector(0, 0)
+            return DEFAULT_ACTIONS['brake_hard']
+        elif (smallest_ttc <= 0.15):
+            best_actions = self.find_best_evasive_action(smallest_ttc)
+            return DEFAULT_ACTIONS[best_actions]
+        elif (bound_ttc <= random.uniform(DEFAULT_TIME_HORIZON_LOWER, DEFAULT_TIME_HORIZON_UPPER)):
+            best_actions = self.find_best_evasive_action_for_boundary(
+                ['steer_left', 'steer_right', 'maintain', 'overtake_left', 'overtake_right'])
+            return DEFAULT_ACTIONS[best_actions]
+        elif (smallest_ttc <= random.uniform(DEFAULT_TIME_HORIZON_LOWER, DEFAULT_TIME_HORIZON_UPPER)):
+            best_actions = self.find_best_evasive_action(smallest_ttc)
+            return DEFAULT_ACTIONS[best_actions]
+        else:
             if (self.agent.speed < MAX_SPEED and random.random() < 0.4):
                 return DEFAULT_ACTIONS['accel_soft']
             else:
                 return DEFAULT_ACTIONS['maintain']
-        else:
-            best_actions = self.find_best_evasive_action(smallest_ttc)
-            return DEFAULT_ACTIONS[best_actions]
 
     def find_best_evasive_action_for_boundary(self, actions: list(str)) -> str:
         max_smallest_ttc = 0
         best_action = 'maintain'
         for action_name, action in DEFAULT_ACTIONS.items():
+            collisions = 0
+            smallest_ttc = np.inf
             if action_name not in actions:
                 continue
             bound_ttc = ttc_to_boundary(
@@ -64,17 +82,22 @@ class HeuristicController(Controller):
                 (self.agent.direction.rotate(action.steer_rad)
                  * self.agent.speed * action.speed_factor)
             )
-            if bound_ttc <= random.uniform(DEFAULT_TIME_HORIZON_LOWER, DEFAULT_TIME_HORIZON_UPPER) and bound_ttc > max_smallest_ttc:
-                max_smallest_ttc = bound_ttc
+            if bound_ttc <= random.uniform(DEFAULT_TIME_HORIZON_LOWER, DEFAULT_TIME_HORIZON_UPPER):
+                continue
+            else:
+                smallest_ttc = bound_ttc
+                collisions += 1
+            if max_smallest_ttc < smallest_ttc:
+                max_smallest_ttc = smallest_ttc
                 best_action = action_name
         return best_action
 
     def find_best_evasive_action(self, ttc: float) -> str:
         max_smallest_ttc = 0
-        min_count = np.inf
         best_action = 'maintain'
         for action_name, action in DEFAULT_ACTIONS.items():
-            count = 0
+            if (random.random() > 0.9 and action_name not in ['steer_left', 'steer_right', 'maintain', 'overtake_left', 'overtake_right']):
+                continue
             bound_ttc = ttc_to_boundary(
                 self.agent.position,
                 (self.agent.direction.rotate(action.steer_rad)
@@ -83,7 +106,6 @@ class HeuristicController(Controller):
             smallest_ttc = np.inf
             if bound_ttc <= random.uniform(DEFAULT_TIME_HORIZON_LOWER, DEFAULT_TIME_HORIZON_UPPER):
                 smallest_ttc = bound_ttc
-                count += 1
             neighors: list[int] = self.world_view.get_neighbors(
                 self.agent.position)
             for neighbor_id in neighors:
@@ -95,10 +117,9 @@ class HeuristicController(Controller):
                 ttc = self.compute_ttc_for_action(action, neighbor_object)
                 if ttc <= random.uniform(DEFAULT_TIME_HORIZON_LOWER, DEFAULT_TIME_HORIZON_UPPER):
                     smallest_ttc = ttc
-                    count += 1
 
-            if count < min_count:
-                min_count = count
+            if max_smallest_ttc < smallest_ttc:
+                max_smallest_ttc = smallest_ttc
                 best_action = action_name
         return best_action
 

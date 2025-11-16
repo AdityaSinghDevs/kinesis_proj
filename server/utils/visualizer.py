@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Arc
 from matplotlib.animation import FuncAnimation
 from sim.object.agent import Agent
-from configs.settings import LEFT_RECT_HALF, TRACK_OUTER_RADIUS, TRACK_INNER_RADIUS
+from configs.settings import LEFT_RECT_HALF, TRACK_OUTER_RADIUS, TRACK_INNER_RADIUS, AGENT_RADIUS
 
 
 class OvalVisualizer:
@@ -58,7 +58,7 @@ class OvalVisualizer:
         for agent in agents:
             circle = Circle(
                 (agent.position.x, agent.position.y),
-                2,
+                AGENT_RADIUS,
                 color="C0",
                 alpha=0.8,
                 label=f"Agent {agent.obj_id}",

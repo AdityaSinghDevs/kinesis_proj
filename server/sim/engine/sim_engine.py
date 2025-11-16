@@ -69,6 +69,8 @@ class SimulationEngine(WorldView):
     def update(self) -> None:
         for obj in self._objects.values():
             if isinstance(obj, Agent):
+                if (obj.state in ('crashed', 'out_of_fuel')):
+                    continue
                 obj.update_agent_state(DT)
                 self._spatial_hash_grid.move(
                     obj.obj_id, obj.position.x, obj.position.y)
@@ -86,6 +88,7 @@ class SimulationEngine(WorldView):
         state = []
         for obj in self._objects.values():
             if isinstance(obj, Agent):
+                print(obj.position.x, obj.position.y);
                 state.append({
                     'id': obj.obj_id,
                     'position': (obj.position.x, obj.position.y),

@@ -26,7 +26,6 @@ async def startup_event():
     sim_engine.init_agents()
     logger.info(f"Simulation engine initialized with {
                 len(sim_engine._objects)} agents")
-    sim_engine.init_obstacles()
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -45,13 +44,10 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.post("/start")
 async def start_simulation():
     """Starts the simulation"""
-#    global sim_engine
-#    if sim_engine.state != 'running':
-#        sim_engine.state = 'running'
-#        asyncio.create_task(sim_engine.run())
     global sim_engine
-    viz = OvalVisualizer()
-    viz.run(sim_engine._objects.values(), sim_engine.update)
+    if sim_engine.state != 'running':
+        sim_engine.state = 'running'
+        asyncio.create_task(sim_engine.run())
     return {"status": "started"}
 
 

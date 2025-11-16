@@ -12,11 +12,11 @@ class Action:
 
 DEFAULT_ACTIONS: dict[str, Action] = {
     "maintain": Action(1.0, 0.0),
-    "accel_soft": Action(1.3, 0.0),
+    "accel_soft": Action(1.05, 0.0),
     "brake_soft": Action(0.7, 0.0),
     "brake_hard": Action(0.3, 0.0),
     "steer_left": Action(0.90, np.deg2rad(6.0)),
     "steer_right": Action(0.90, -np.deg2rad(6.0)),
-    "overtake_left": Action(1.5, np.deg2rad(10.0)),
-    "overtake_right": Action(1.5, -np.deg2rad(10.0)),
+    "overtake_left": Action(1.15, np.deg2rad(10.0)),
+    "overtake_right": Action(1.15, -np.deg2rad(10.0)),
 }
